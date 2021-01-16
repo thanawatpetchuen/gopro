@@ -9,7 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "github.com/thanawatpetchuen/gopro/generated/proto"
+	pb "github.com/thanawatpetchuen/gopro/generated/proto/pingpong"
 )
 
 // Implement pb.PingPongServer
@@ -30,7 +30,7 @@ func (s *PingPongServerImpl) StartPing(ctx context.Context, ping *pb.Ping) (*pb.
 func StartPingPongServer() {
 	server := PingPongServerImpl{}
 
-	lis, err := net.Listen("tcp", "localhost:9000")
+	lis, err := net.Listen("tcp", "localhost:9001")
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterPingPongServer(grpcServer, &server)

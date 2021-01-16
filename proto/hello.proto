@@ -1,0 +1,24 @@
+syntax="proto3";
+
+// this will be package of the generated code
+package hello;
+
+// Message structure
+// message Hello {
+//     // Field number 1-15 use 1 byte, while field 16th - 2047th use 2 bytes
+//     // So, the first 15 fields should be reserved for fields that are used oftenly
+//     int32 id = 1;
+//     string data = 2;
+// }
+
+message HelloMessage {
+    int32 id = 1;
+    string message = 2;
+}
+
+message HelloParams {}
+
+service Hello {
+    // PingPongService has a method, which is StartPing
+    rpc Helloing (HelloParams) returns (HelloMessage);
+}

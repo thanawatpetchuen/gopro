@@ -2,21 +2,25 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"log"
+	"net/http"
 	"time"
 
-	pb "github.com/thanawatpetchuen/gopro/generated/proto"
+	"github.com/gorilla/mux"
+	helloPb "github.com/thanawatpetchuen/gopro/generated/proto/hello"
+	pingpongPb "github.com/thanawatpetchuen/gopro/generated/proto/pingpong"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func SendPing(client pb.PingPongClient) (*pb.Pong, error) {
+func SendPing(client pingpongPb.PingPongClient, helloClient helloPb.HelloClient) (*pingpongPb.Pong, error) {
 	// Timeout 10 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	ping := pb.Ping{
+	ping := pingpongPb.Ping{
 		Id:      1,
 		Message: "Ping",
 	}
@@ -25,27 +29,61 @@ func SendPing(client pb.PingPongClient) (*pb.Pong, error) {
 	if statusCode != codes.OK {
 		return nil, err
 	}
-	fmt.Printf("Pong: %d, statusCode: %s\n", pong.Id, statusCode.String())
+
+	// Hello Service
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	helloMassage, err := helloClient.Helloing(ctx, &helloPb.HelloParams{})
+	statusCode = status.Code(err)
+	if statusCode != codes.OK {
+		return nil, err
+	}
+
+	// return
+	pong.Message = helloMassage.GetMessage()
 	return pong, err
 }
 
-func StartPingPongClient() {
-	// Disable transport security for this example only,
+func NewPingPongClient() pingpongPb.PingPongClient {
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	conn, err := grpc.Dial("127.0.0.1:9001", opts...)
+	if err != nil {
+		panic(err)
+	}
+
+	client := pingpongPb.NewPingPongClient(conn)
+	return client
+}
+
+func NewHelloClient() helloPb.HelloClient {
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 	conn, err := grpc.Dial("127.0.0.1:9000", opts...)
 	if err != nil {
 		panic(err)
 	}
 
-	client := pb.NewPingPongClient(conn)
-
-	_, err = SendPing(client)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Finish Pinging")
+	client := helloPb.NewHelloClient(conn)
+	return client
 }
 
 func main() {
-	StartPingPongClient()
+	client := NewPingPongClient()
+	helloClient := NewHelloClient()
+
+	router := mux.NewRouter()
+	router.Methods(http.MethodGet).Path("/ping").HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		msg, err := SendPing(client, helloClient)
+		if err != nil {
+			panic(err)
+		}
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(rw).Encode(msg); err != nil {
+			log.Fatal(err)
+		}
+	})
+
+	if err := http.ListenAndServe(":3000", router); err != nil {
+		log.Fatal(err)
+	}
 }
