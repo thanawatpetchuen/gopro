@@ -9,7 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "github.com/thanawatpetchuen/gopro/generated/proto/hello"
+	pb "github.com/thanawatpetchuen/gopro/generated/hello/proto"
 )
 
 // Implement pb.HelloServer

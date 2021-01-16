@@ -1,0 +1,1 @@
+protoc --go_out=plugins=grpc:<relative_output_path> pingpong.proto

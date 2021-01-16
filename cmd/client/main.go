@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	helloPb "github.com/thanawatpetchuen/gopro/generated/proto/hello"
-	pingpongPb "github.com/thanawatpetchuen/gopro/generated/proto/pingpong"
+	helloPb "github.com/thanawatpetchuen/gopro/generated/hello/proto"
+	pingpongPb "github.com/thanawatpetchuen/gopro/generated/pingpong/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -74,7 +74,8 @@ func main() {
 	router.Methods(http.MethodGet).Path("/ping").HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		msg, err := SendPing(client, helloClient)
 		if err != nil {
-			panic(err)
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusOK)

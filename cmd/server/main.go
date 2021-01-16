@@ -9,7 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "github.com/thanawatpetchuen/gopro/generated/proto/pingpong"
+	pb "github.com/thanawatpetchuen/gopro/generated/pingpong/proto"
 )
 
 // Implement pb.PingPongServer
@@ -22,6 +22,10 @@ func (s *PingPongServerImpl) StartPing(ctx context.Context, ping *pb.Ping) (*pb.
 	resp := pb.Pong{
 		Id:      ping.Id,
 		Message: ping.Message,
+		User: &pb.User{
+			Id:   2,
+			Name: "Thanawat",
+		},
 	}
 
 	return &resp, nil
