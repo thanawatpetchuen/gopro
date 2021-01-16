@@ -1,0 +1,22 @@
+syntax="proto3";
+
+// this will be package of the generated code
+package pingpong;
+
+// Message structure
+message Ping {
+    // Field number 1-15 use 1 byte, while field 16th - 2047th use 2 bytes
+    // So, the first 15 fields should be reserved for fields that are used oftenly
+    int32 id = 1;
+    string message = 2;
+}
+
+message Pong {
+    int32 id = 1;
+    string message = 2;
+}
+
+service PingPong {
+    // PingPongService has a method, which is StartPing
+    rpc StartPing (Ping) returns (Pong);
+}
